@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#02060a">
+<title>JARVIS AI</title>
+<style>
+:root{color-scheme:dark;--bg:#02060a;--glass:rgba(120,220,255,.06);--line:rgba(120,230,255,.22);--cy:#3de0ff;--tq:#2ff2c4;--sv:#b9c7d1;--tx:#e6f3f8;--mut:#7f97a3;--bad:#ff6b7a;
+--f:"SF Pro Display","Avenir Next","Segoe UI",system-ui,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;height:100%;background:radial-gradient(120% 70% at 50% 28%,#06202b 0,var(--bg) 62%);color:var(--tx);font:16px/1.45 var(--f);overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+#app{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+h1{margin:0;font-size:15px;font-weight:600;letter-spacing:.22em;color:var(--cy)}
+.sub{font-size:12px;color:var(--mut)}
+.st{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tq);box-shadow:0 0 8px var(--tq)}
+.off .dot{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+.av{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--cy);background:var(--glass);font-weight:600}
+main{flex:1;overflow-y:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch}
+section{display:none}section.on{display:block}
+.core{display:grid;place-items:center;margin-top:4px}
+canvas{width:min(78vw,300px);height:min(78vw,300px);touch-action:manipulation}
+.greet{text-align:center;font-size:22px;font-weight:300;margin:2px 0}
+.state{text-align:center;color:var(--mut);font-size:13px;min-height:20px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}
+.in{flex:1;min-width:0;background:var(--glass);border:1px solid var(--line);border-radius:22px;color:var(--tx);padding:12px 16px;font:inherit;outline:none}
+.in:focus-visible,button:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.mic{width:48px;height:48px;border-radius:50%;border:1px solid var(--cy);background:rgba(61,224,255,.12);color:var(--cy);font-size:20px;cursor:pointer;flex:none}
+.mic.rec{background:var(--cy);color:#001018;box-shadow:0 0 22px var(--cy)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px}
+.chip{flex:none;border:1px solid var(--line);background:var(--glass);color:var(--sv);border-radius:16px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;backdrop-filter:blur(12px)}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;margin:8px 0;white-space:pre-wrap;word-wrap:break-word}
+.u{margin-left:auto;background:rgba(61,224,255,.14);border:1px solid var(--line)}
+.a{background:var(--glass);border:1px solid rgba(185,199,209,.18)}
+.btn{border:1px solid var(--line);background:var(--glass);color:var(--tx);border-radius:12px;padding:8px 14px;font:inherit;cursor:pointer}
+.btn.p{background:var(--cy);color:#001018;border-color:var(--cy);font-weight:600}
+.btn.d{color:var(--bad);border-color:rgba(255,107,122,.4)}
+.seg{display:flex;gap:6px;margin:6px 0 10px}.seg .btn{flex:1;padding:8px 2px;font-size:13px}.seg .btn.on{background:rgba(61,224,255,.18);border-color:var(--cy);color:var(--cy)}
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(120,230,255,.1)}
+.item:last-child{border:0}.item .t{flex:1;min-width:0;word-wrap:break-word}.done .t{text-decoration:line-through;color:var(--mut)}
+.item input[type=checkbox]{width:22px;height:22px;accent-color:var(--cy)}
+.meta{font-size:12px;color:var(--mut)}
+.empty{color:var(--mut);text-align:center;padding:22px 0}
+h2{font-size:17px;font-weight:600;margin:14px 0 6px}
+nav{display:flex;border-top:1px solid var(--line);background:rgba(2,6,10,.92);backdrop-filter:blur(14px);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;color:var(--mut);font:inherit;font-size:11px;padding:6px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button i{font-style:normal;font-size:19px}nav button.on{color:var(--cy)}
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#0b2a36;border:1px solid var(--cy);padding:9px 16px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:88%;text-align:center}
+#toast.on{opacity:1}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div><h1>JARVIS AI</h1><div class="sub" id="clock"></div></div>
+  <div class="st" id="net"><span class="dot"></span><span id="netT">онлайн</span></div>
+  <button class="btn" id="sb" aria-label="Поиск">🔍</button><div class="av" id="avatar">J</div>
+</header>
+<main>
+<section id="home" class="on">
+  <div class="core"><canvas id="core" width="600" height="600" aria-label="Ядро JARVIS"></canvas></div>
+  <div class="greet" id="greet"></div>
+  <div class="state" id="state">Готов к работе</div>
+  <div class="row">
+    <input class="in" id="hin" placeholder="Спросить JARVIS" enterkeyhint="send" autocomplete="off">
+    <button class="mic" id="mic" aria-label="Голос">🎙</button>
+  </div>
+  <div class="chips">
+    <button class="chip" data-go="ask">Спросить JARVIS</button>
+    <button class="chip" data-go="day">Мой день</button>
+    <button class="chip" data-go="tasks">Задачи</button>
+    <button class="chip" data-go="notes">Заметки</button>
+    <button class="chip" data-go="study">Учёба</button><button class="chip" data-go="sport">Спорт</button>
+  </div>
+  <div class="panel" id="hsum"></div>
+</section>
+<section id="assistant">
+  <div id="chat"></div>
+  <div class="row" style="position:sticky;bottom:0;padding:8px 0;background:var(--bg)">
+    <input class="in" id="ain" placeholder="Напишите команду" enterkeyhint="send" autocomplete="off">
+    <button class="btn p" id="asend">Отправить</button>
+  </div>
+</section>
+<section id="automations">
+  <h2>Автоматизации</h2>
+  <div class="panel">Центр автоматизаций с конструктором сценариев появится на этапе 7. Сейчас он не работает, поэтому кнопок-заглушек здесь нет.</div>
+</section>
+<section id="organizer">
+  <div class="seg"><button class="btn on" data-tab="tasks">Задачи</button><button class="btn" data-tab="notes">Заметки</button><button class="btn" data-tab="events">События</button><button class="btn" data-tab="fin">Финансы</button></div>
+  <input class="in" id="q" placeholder="Поиск" style="width:100%;margin-bottom:8px">
+  <div class="panel" id="addbox"></div>
+  <div class="panel" id="list"></div>
+</section>
+<section id="study"></section><section id="sport"></section>
+<section id="settings">
+  <h2>Профиль</h2>
+  <div class="panel">
+    <label for="nm">Имя</label><input class="in" id="nm" style="width:100%">
+    <label><input type="checkbox" id="sp"> Озвучивать ответы</label>
+  </div>
+  <h2>Данные</h2>
+  <div class="panel">
+    <div class="meta" style="margin-bottom:8px">Всё хранится только на этом устройстве, в браузере.</div>
+    <div class="row"><button class="btn" id="exp">Скопировать данные (JSON)</button><button class="btn d" id="wipe">Удалить всё</button></div>
+  </div>
+  <h2>История действий</h2><div class="panel" id="hist"></div><h2>AI</h2>
+  <div class="panel">AI-сервер не подключён (этап 5). Ключи будут храниться только на сервере. Сейчас JARVIS понимает команды на основе правил: задачи, заметки, «мой день».</div>
+</section>
+</main>
+<nav>
+  <button class="on" data-v="home"><i>◉</i>Главная</button>
+  <button data-v="assistant"><i>✦</i>Ассистент</button>
+  <button data-v="automations"><i>⚙</i>Автомат.</button>
+  <button data-v="organizer"><i>☰</i>Органайзер</button>
+  <button data-v="settings"><i>⚑</i>Настройки</button>
+</nav>
+</div>
+<div id="ov" style="display:none;position:fixed;inset:0;z-index:20;background:var(--bg);padding:calc(12px + env(safe-area-inset-top,0px)) 16px 16px;overflow-y:auto"><div class="row"><input class="in" id="gq" placeholder="Поиск или команда (Enter — спросить JARVIS)" autocomplete="off" enterkeyhint="send"><button class="btn" id="gx">Закрыть</button></div><div id="gr"></div></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const KEY='jarvis_v1';
+let S={tasks:[],notes:[],chat:[],events:[],fin:[],goal:null,budget:0,hw:[],cards:[],wk:[],log:[],name:'',speak:true};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const kv=(m,k,v)=>(kv.p=kv.p||new Promise((res,rej)=>{const r=indexedDB.open('jarvis',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})).then(d=>new Promise((res,rej)=>{const t=d.transaction('kv',m==='get'?'readonly':'readwrite'),s=t.objectStore('kv'),q=m==='get'?s.get(k):s.put(v,k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
+const COL={tasks:['Задача','title'],notes:['Заметка','text'],events:['Событие','title'],fin:['Операция','c'],hw:['Домашка','t'],cards:['Карточка','f'],wk:['Тренировка','ex']};
+let prev=null,sv=0;
+function lg(a,n,t){S.log=S.log||[];S.log.unshift({ts:Date.now(),a:a+': '+n+' «'+String(t).slice(0,40)+'»'});S.log.length=Math.min(S.log.length,200)}
+function diff(){const cur={};for(const k in COL)cur[k]=Object.fromEntries((S[k]||[]).map(x=>[x.id,x]));
+if(prev)for(const k in COL){const[n,f]=COL[k];for(const id in cur[k]){if(!prev[k][id])lg('Добавлено',n,cur[k][id][f]);else if(cur[k][id].done!==prev[k][id].done)lg(cur[k][id].done?'Выполнено':'Снято',n,cur[k][id][f])}for(const id in prev[k])if(!cur[k][id])lg('Удалено',n,prev[k][id][f])}
+prev=cur}
+const save=()=>{diff();clearTimeout(sv);sv=setTimeout(()=>{kv('put','state',JSON.parse(JSON.stringify(S))).then(()=>{try{localStorage.removeItem(KEY)}catch(e){}}).catch(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Не удалось сохранить данные')}})},150)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const iso=d=>{const z=new Date(d);return z.getFullYear()+'-'+String(z.getMonth()+1).padStart(2,'0')+'-'+String(z.getDate()).padStart(2,'0')};
+const todayS=()=>iso(new Date()),tomS=()=>{const d=new Date();d.setDate(d.getDate()+1);return iso(d)};
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
+
+/* clock, greeting, status */
+function tick(){const d=new Date();$('#clock').textContent=d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+', '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+const h=d.getHours(),g=h<5?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';$('#greet').textContent=g+(S.name?', '+S.name:'');$('#avatar').textContent=(S.name||'J')[0].toUpperCase()}
+function net(){const o=navigator.onLine;$('#net').classList.toggle('off',!o);$('#netT').textContent=o?'онлайн':'офлайн'}
+addEventListener('online',net);addEventListener('offline',net);setInterval(tick,20000);tick();net();
+
+/* core animation */
+let mode='idle';const cv=$('#core'),cx=cv.getContext('2d');
+const LBL={idle:'Готов к работе',listen:'Слушаю…',think:'Обрабатываю…',speak:'Отвечаю…'};
+function setMode(m){mode=m;$('#state').textContent=LBL[m]}
+function draw(t){t/=1000;const W=600,c=W/2;cx.clearRect(0,0,W,W);
+const sp={idle:1,listen:3,think:5,speak:2.4}[mode],amp={idle:.04,listen:.13,think:.06,speak:.1}[mode];
+const pulse=1+amp*Math.sin(t*sp)+(mode==='speak'?.05*Math.sin(t*7.3):0)+(mode==='listen'?.04*Math.sin(t*11):0);
+const r=120*pulse,g=cx.createRadialGradient(c,c,r*.2,c,c,r*2.1);
+g.addColorStop(0,'rgba(61,224,255,.55)');g.addColorStop(.45,'rgba(47,242,196,.12)');g.addColorStop(1,'rgba(2,6,10,0)');
+cx.fillStyle=g;cx.fillRect(0,0,W,W);
+cx.lineWidth=2;
+for(let i=0;i<3;i++){const rr=r*(1+i*.3),a=(t*sp*(i%2?-.4:.4))+i;cx.strokeStyle=i===1?'rgba(47,242,196,.7)':'rgba(61,224,255,.6)';cx.beginPath();
+const n=mode==='think'?2:3;for(let k=0;k<n;k++){const s=a+k*(Math.PI*2/n);cx.arc(c,c,rr,s,s+(mode==='think'?1.6:1.1));cx.moveTo(c+rr*Math.cos(s+(mode==='think'?3.2:2.0)),c+rr*Math.sin(s+(mode==='think'?3.2:2.0)))}cx.stroke()}
+cx.fillStyle='rgba(185,199,209,.8)';
+for(let i=0;i<48;i++){const a=i/48*6.283+t*.15*sp,w=mode==='listen'||mode==='speak'?Math.sin(t*6+i*1.7)*14*amp*8:0,rr=r*1.95+w;cx.beginPath();cx.arc(c+rr*Math.cos(a),c+rr*Math.sin(a),i%4?1.5:2.6,0,6.283);cx.fill()}
+const k=cx.createRadialGradient(c,c,0,c,c,r*.75);k.addColorStop(0,'#eaffff');k.addColorStop(.5,'#3de0ff');k.addColorStop(1,'rgba(47,242,196,.15)');
+cx.fillStyle=k;cx.beginPath();cx.arc(c,c,r*.62,0,6.283);cx.fill();
+requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+cv.onclick=()=>$('#mic').click();
+
+/* navigation */
+function go(v){$$('section').forEach(s=>s.classList.toggle('on',s.id===v));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+if(v==='organizer')renderOrg();if(v==='assistant')renderChat();if(v==='home')renderHome();if(v==='study')renderStudy();if(v==='sport')renderSport();if(v==='settings'){$('#nm').value=S.name;$('#sp').checked=S.speak;renderHist()}
+$('main').scrollTop=0}
+$$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+/* intents */
+let pending=null;
+function dayText(){const t=todayS(),open=S.tasks.filter(x=>!x.done),td=open.filter(x=>x.due&&x.due<=t),
+hi=open.filter(x=>x.pr==='high');
+if(!open.length)return 'Открытых задач нет.'+evText();
+let s='На сегодня и просрочено: '+td.length+'\nВсего открытых задач: '+open.length;
+if(td.length)s+='\n\nСегодня:\n'+td.map(x=>'• '+x.title).join('\n');
+if(hi.length)s+='\n\nВысокий приоритет:\n'+hi.map(x=>'• '+x.title).join('\n');
+return s+evText()}
+function parse(raw){const x=raw.trim(),l=x.toLowerCase().replace(/^джарвис[,\s]*/,'');
+let m;
+if(/мой день|что у меня сегодня|по плану/.test(l))return{text:dayText()};
+if(m=l.match(/(?:добавь|создай|запланируй|напомни(?: мне)?)\s*(?:задачу)?\s*(.+)/)){
+ let title=m[1],due='';if(/завтра/.test(title)){due=tomS();title=title.replace(/\s*на завтра|\s*завтра/,'')}else if(/сегодня/.test(title)){due=todayS();title=title.replace(/\s*на сегодня|\s*сегодня/,'')}
+ title=title.trim();if(!title)return{text:'Что именно добавить? Назовите задачу.'};
+ title=title[0].toUpperCase()+title.slice(1);
+ return{text:'Создать задачу «'+title+'»'+(due?' на '+due:'')+'?',act:{type:'task',title,due}}}
+if(m=l.match(/(?:запиши|заметка|заметку)[:\s]*(?:мою идею|идею)?[:\s]*(.+)/))return{text:'Сохранить заметку «'+m[1]+'»?',act:{type:'note',title:m[1]}};
+if(/накопить|моя цель/.test(l)){const g=S.goal;return{text:g?'Цель «'+g.name+'»: отложено '+fm(g.saved)+' из '+fm(g.target)+'. Осталось '+fm(Math.max(0,g.target-g.saved)):'Цель не задана. Создайте её в Органайзер → Финансы.'}}
+if(/сколько.*потратил|на что.*(уходит|трач)/.test(l)){const t=todayS(),w=new Date();w.setDate(w.getDate()-6);const ws=iso(w),O=S.fin.filter(o=>o.t==='out');
+if(!O.length)return{text:'Расходов пока нет. Добавьте их в Органайзер → Финансы.'};
+const W=O.filter(o=>o.d>=ws),by={};W.forEach(o=>by[o.c]=(by[o.c]||0)+o.s);const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0];
+return{text:'Сегодня: '+fm(O.filter(o=>o.d===t).reduce((s,o)=>s+o.s,0))+'\nЗа 7 дней: '+fm(W.reduce((s,o)=>s+o.s,0))+(top?'\nБольше всего: '+top[0]+' ('+fm(top[1])+')':'')}}
+if(/расписан|уроки|что.*в школе/.test(l)){const d=new Date(),zw=/завтра/.test(l);if(zw)d.setDate(d.getDate()+1);const D=SCH[d.getDay()];return{text:(zw?'Завтра':'Сегодня')+':\n'+(D.l.length?D.l.map((x,i)=>(i+1)+'. '+x+' '+LS[i][0]).join('\n'):'уроков нет')+(D.x.length?'\n\nВне школы: '+D.x.join(', '):'')}}
+if(/домашк|домашн/.test(l)){S.hw=S.hw||[];const H=S.hw.filter(x=>!x.done);return{text:H.length?'Не сделано:\n'+H.map(x=>'• '+x.s+': '+x.t+(x.d?' (до '+x.d+')':'')).join('\n'):'Невыполненных домашних заданий нет.'}}
+if(/открой.*(задач|заметк)/.test(l)){go('organizer');return{text:'Открываю органайзер.'}}
+return{text:'AI-сервер ещё не подключён (этап 5), поэтому свободные вопросы пока недоступны. Я понимаю команды:\n• добавь задачу … (на завтра)\n• запиши идею …\n• что у меня сегодня по плану'}}
+function say(t){if(!S.speak||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';u.onstart=()=>setMode('speak');u.onend=u.onerror=()=>setMode('idle');speechSynthesis.speak(u)}catch(e){}}
+function send(text){if(!text.trim())return;go('assistant');S.chat.push({r:'u',t:text});setMode('think');renderChat();
+setTimeout(()=>{const r=parse(text);S.chat.push({r:'a',t:r.text,act:r.act||null});pending=r.act||null;save();setMode('idle');renderChat();say(r.text)},450)}
+function confirmAct(ok){const a=pending;pending=null;const last=S.chat[S.chat.length-1];if(last)last.act=null;
+if(ok&&a){if(a.type==='task')S.tasks.unshift({id:uid(),title:a.title,due:a.due||'',pr:'mid',done:false});else S.notes.unshift({id:uid(),text:a.title,pin:false,ts:Date.now()});
+S.chat.push({r:'a',t:'Готово, сохранено в органайзере.'})}else S.chat.push({r:'a',t:'Отменено.'});save();renderChat()}
+function renderChat(){const c=$('#chat');
+if(!S.chat.length){c.innerHTML='<div class="empty">Скажите или напишите, например:<br>«Добавь задачу на завтра: купить воду»</div>';return}
+c.innerHTML=S.chat.slice(-40).map((m,i,a)=>'<div class="msg '+m.r+'">'+esc(m.t)+(m.act&&i===a.length-1?'<div class="row" style="margin-top:8px"><button class="btn p" data-ok="1">Да</button><button class="btn" data-ok="0">Нет</button></div>':'')+'</div>').join('');
+$$('#chat [data-ok]').forEach(b=>b.onclick=()=>confirmAct(b.dataset.ok==='1'));
+$('main').scrollTop=$('main').scrollHeight}
+$('#asend').onclick=()=>{const v=$('#ain').value;$('#ain').value='';send(v)};
+$('#ain').onkeydown=e=>{if(e.key==='Enter')$('#asend').click()};
+$('#hin').onkeydown=e=>{if(e.key==='Enter'){const v=$('#hin').value;$('#hin').value='';send(v)}};
+
+/* voice */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
+$('#mic').onclick=()=>{
+if(!SR){toast('Голосовой ввод не поддерживается. Используйте текст.');$('#hin').focus();return}
+if(rec){rec.stop();return}
+try{speechSynthesis.cancel()}catch(e){}
+rec=new SR();rec.lang='ru-RU';rec.interimResults=false;let got='';
+rec.onstart=()=>{setMode('listen');$('#mic').classList.add('rec')};
+rec.onresult=e=>{got=e.results[0][0].transcript};
+rec.onerror=e=>toast(e.error==='not-allowed'?'Нет доступа к микрофону':'Ошибка распознавания');
+rec.onend=()=>{rec=null;$('#mic').classList.remove('rec');setMode('idle');if(got)send(got)};
+try{rec.start()}catch(e){rec=null;toast('Не удалось включить микрофон')}};
+
+/* home summary */
+function renderHome(){const open=S.tasks.filter(x=>!x.done).length,t=todayS(),td=S.tasks.filter(x=>!x.done&&x.due&&x.due<=t).length;
+$('#hsum').innerHTML='<b>Сводка</b><div class="meta">Открытых задач: '+open+' · На сегодня: '+td+' · Заметок: '+S.notes.length+'</div>'}
+$$('.chip').forEach(b=>b.onclick=()=>{const k=b.dataset.go;
+if(k==='ask'){go('assistant');$('#ain').focus()}
+else if(k==='day')send('Мой день');
+else if(k==='tasks'||k==='notes'){orgTab=k;go('organizer')}
+else go(k)});
+
+/* organizer */
+let orgTab='tasks';
+function renderOrg(){$$('.seg .btn').forEach(b=>b.classList.toggle('on',b.dataset.tab===orgTab));
+const q=$('#q').value.toLowerCase();
+if(orgTab==='events')return renderEv(q);if(orgTab==='fin')return renderFin(q);
+if(orgTab==='tasks'){
+ $('#addbox').innerHTML='<div class="row"><input class="in" id="nt" placeholder="Новая задача"></div><div class="row" style="margin-top:8px"><input class="in" id="nd" type="date"><select class="in" id="np" style="flex:none"><option value="mid">Средний</option><option value="high">Высокий</option><option value="low">Низкий</option></select><button class="btn p" id="na">Добавить</button></div>';
+ $('#na').onclick=()=>{const t=$('#nt').value.trim();if(!t)return toast('Введите название задачи');S.tasks.unshift({id:uid(),title:t,due:$('#nd').value,pr:$('#np').value,done:false});save();renderOrg()};
+ const L=S.tasks.filter(x=>x.title.toLowerCase().includes(q));
+ const PR={high:'высокий',mid:'средний',low:'низкий'};
+ $('#list').innerHTML=L.length?L.map(x=>'<div class="item'+(x.done?' done':'')+'"><input type="checkbox" data-c="'+x.id+'"'+(x.done?' checked':'')+'><div class="t">'+esc(x.title)+'<div class="meta">'+PR[x.pr]+(x.due?' · до '+x.due:'')+'</div></div><button class="btn d" data-x="'+x.id+'">Удалить</button></div>').join(''):'<div class="empty">Задач нет. Добавьте первую выше.</div>';
+ $$('[data-c]').forEach(e=>e.onchange=()=>{const t=S.tasks.find(x=>x.id===e.dataset.c);t.done=e.checked;save();renderOrg()});
+ $$('[data-x]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.tasks=S.tasks.filter(x=>x.id!==b.dataset.x);save();renderOrg()}));
+}else{
+ $('#addbox').innerHTML='<textarea class="in" id="nn" rows="2" placeholder="Новая заметка" style="width:100%;border-radius:16px"></textarea><div class="row" style="margin-top:8px"><button class="btn p" id="na">Сохранить</button></div>';
+ $('#na').onclick=()=>{const t=$('#nn').value.trim();if(!t)return toast('Заметка пустая');S.notes.unshift({id:uid(),text:t,pin:false,ts:Date.now()});save();renderOrg()};
+ const L=S.notes.filter(x=>x.text.toLowerCase().includes(q)).sort((a,b)=>b.pin-a.pin);
+ $('#list').innerHTML=L.length?L.map(x=>'<div class="item"><div class="t">'+(x.pin?'📌 ':'')+esc(x.text)+'</div><button class="btn" data-p="'+x.id+'">'+(x.pin?'Открепить':'Закрепить')+'</button><button class="btn" data-t="'+x.id+'">В задачу</button><button class="btn d" data-x="'+x.id+'">Удалить</button></div>').join(''):'<div class="empty">Заметок нет.</div>';
+ $$('[data-p]').forEach(b=>b.onclick=()=>{const n=S.notes.find(x=>x.id===b.dataset.p);n.pin=!n.pin;save();renderOrg()});
+ $$('[data-t]').forEach(b=>b.onclick=()=>{const n=S.notes.find(x=>x.id===b.dataset.t);S.tasks.unshift({id:uid(),title:n.text.slice(0,120),due:'',pr:'mid',done:false});save();toast('Задача создана')});
+ $$('[data-x]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.notes=S.notes.filter(x=>x.id!==b.dataset.x);save();renderOrg()}))}}
+$$('.seg .btn').forEach(b=>b.onclick=()=>{orgTab=b.dataset.tab;renderOrg()});
+$('#q').oninput=renderOrg;
+function twoTap(b,fn){if(b.dataset.arm){fn();return}b.dataset.arm=1;const o=b.textContent;b.textContent='Точно?';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent=o}},2500)}
+
+/* events */
+let evR=7;
+function evText(){const t=todayS(),E=S.events.filter(e=>e.date===t).sort((a,b)=>a.time.localeCompare(b.time));
+if(!E.length)return '\n\nСобытий сегодня нет. Свободно всё окно 8:00–22:00 (14 ч).';
+const f=Math.max(0,840-E.reduce((s,e)=>s+e.dur,0));
+return '\n\nСобытия:\n'+E.map(e=>'• '+e.time+' '+e.title).join('\n')+'\n\nСвободно в окне 8:00–22:00: '+Math.floor(f/60)+' ч '+f%60+' мин'}
+function ics(){const f=d=>iso(d).replace(/-/g,'')+'T'+d.toTimeString().slice(0,5).replace(':','')+'00';
+return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JARVIS AI//RU'].concat(...S.events.map(e=>{const a=new Date(e.date+'T'+e.time),b=new Date(a.getTime()+e.dur*60000);return['BEGIN:VEVENT','UID:'+e.id+'@jarvis','DTSTAMP:'+f(new Date()),'DTSTART:'+f(a),'DTEND:'+f(b),'SUMMARY:'+e.title.replace(/[,;]/g,' '),'END:VEVENT']})).concat('END:VCALENDAR').join('\r\n')}
+function renderEv(q){
+$('#addbox').innerHTML='<input class="in" id="et" placeholder="Новое событие" style="width:100%"><div class="row" style="margin-top:8px"><input class="in" id="ed" type="date" value="'+todayS()+'"><input class="in" id="eh" type="time" value="10:00"></div><div class="row" style="margin-top:8px"><select class="in" id="el"><option value="30">30 мин</option><option value="60" selected>1 час</option><option value="120">2 часа</option></select><button class="btn p" id="ea">Добавить</button></div>';
+$('#ea').onclick=()=>{const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return toast('Укажите название и дату');S.events.push({id:uid(),title:t,date:d,time:$('#eh').value||'09:00',dur:+$('#el').value});save();renderOrg()};
+const lim=new Date();lim.setDate(lim.getDate()+evR);
+const L=S.events.filter(e=>e.title.toLowerCase().includes(q)&&e.date>=todayS()&&e.date<=iso(lim)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+$('#list').innerHTML='<div class="seg">'+[['День',0],['Неделя',7],['Месяц',30]].map(([n,v])=>'<button class="btn'+(evR===v?' on':'')+'" data-r="'+v+'">'+n+'</button>').join('')+'</div>'+(L.length?L.map(e=>'<div class="item"><div class="t">'+esc(e.title)+'<div class="meta">'+e.date+' · '+e.time+' · '+e.dur+' мин</div></div><button class="btn d" data-x="'+e.id+'">Удалить</button></div>').join(''):'<div class="empty">В этом периоде событий нет.</div>')+'<div class="row" style="margin-top:10px"><button class="btn" id="ics">Скопировать ICS</button></div>';
+$$('[data-r]').forEach(b=>b.onclick=()=>{evR=+b.dataset.r;renderOrg()});
+$$('[data-x]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.events=S.events.filter(x=>x.id!==b.dataset.x);save();renderOrg()}));
+$('#ics').onclick=async()=>{if(!S.events.length)return toast('Событий нет');try{await navigator.clipboard.writeText(ics());toast('ICS скопирован, вставьте в файл .ics')}catch(e){toast('Не удалось скопировать')}}}
+/* finance */
+const CAT=['Еда','Транспорт','Дом','Развлечения','Учёба','Здоровье','Другое'],fm=n=>(Math.round(n*100)/100).toLocaleString('ru-RU');
+const sumF=(a,t)=>a.filter(o=>o.t===t).reduce((s,o)=>s+o.s,0);
+function renderFin(q){const m=todayS().slice(0,7),M=S.fin.filter(o=>o.d.slice(0,7)===m),mi=sumF(M,'in'),mo=sumF(M,'out'),bal=sumF(S.fin,'in')-sumF(S.fin,'out'),by={};
+M.filter(o=>o.t==='out').forEach(o=>by[o.c]=(by[o.c]||0)+o.s);const top=Object.entries(by).sort((a,b)=>b[1]-a[1]),mx=top[0]?top[0][1]:1,g=S.goal;
+const bar=(p)=>'<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,var(--cy),var(--tq));width:'+Math.max(3,Math.min(100,p))+'%"></div>';
+$('#addbox').innerHTML='<div class="row"><select class="in" id="ft" style="flex:none"><option value="out">Расход</option><option value="in">Доход</option></select><input class="in" id="fs" type="number" inputmode="decimal" placeholder="Сумма"></div><div class="row" style="margin-top:8px"><select class="in" id="fc">'+CAT.map(c=>'<option>'+c+'</option>').join('')+'</select><input class="in" id="fn" placeholder="Комментарий"></div><div class="row" style="margin-top:8px"><button class="btn p" id="fa">Добавить</button></div>'
++'<h2>Этот месяц</h2><div class="meta">Баланс: <b style="color:var(--tx)">'+fm(bal)+'</b> · Доходы: '+fm(mi)+' · Расходы: '+fm(mo)+'</div>'
++top.map(([c,v])=>'<div style="margin-top:8px;font-size:13px">'+c+' · '+fm(v)+bar(v/mx*100)+'</div>').join('')
++'<label>Бюджет на месяц</label><div class="row"><input class="in" id="fb" type="number" inputmode="decimal" value="'+(S.budget||'')+'" placeholder="0"><button class="btn" id="fbs">Задать</button></div>'+(S.budget?'<div class="meta" style="margin-top:6px">Осталось по бюджету: '+fm(S.budget-mo)+'</div>':'')
++'<h2>Цель</h2>'+(g?'<div>'+esc(g.name)+' · '+fm(g.saved)+' из '+fm(g.target)+bar(g.saved/g.target*100)+'</div><div class="row" style="margin-top:8px"><input class="in" id="ga" type="number" inputmode="decimal" placeholder="Сумма"><button class="btn p" id="gad">Отложить</button><button class="btn d" id="gdel">Удалить</button></div>':'<div class="row"><input class="in" id="gn" placeholder="На что копим"><input class="in" id="gt" type="number" inputmode="decimal" placeholder="Сумма"><button class="btn p" id="gok">Создать</button></div>');
+$('#fa').onclick=()=>{const s=parseFloat($('#fs').value),t=$('#ft').value;if(!(s>0))return toast('Введите сумму больше нуля');S.fin.unshift({id:uid(),t,s,c:t==='in'?'Доход':$('#fc').value,n:$('#fn').value.trim(),d:todayS()});save();renderOrg()};
+$('#fbs').onclick=()=>{S.budget=Math.max(0,parseFloat($('#fb').value)||0);save();renderOrg()};
+if(g){$('#gad').onclick=()=>{const s=parseFloat($('#ga').value);if(!(s>0))return toast('Введите сумму');S.goal.saved+=s;S.fin.unshift({id:uid(),t:'out',s,c:'Цель',n:g.name,d:todayS()});save();renderOrg()};$('#gdel').onclick=()=>twoTap($('#gdel'),()=>{S.goal=null;save();renderOrg()})}
+else $('#gok').onclick=()=>{const n=$('#gn').value.trim(),t=parseFloat($('#gt').value);if(!n||!(t>0))return toast('Укажите цель и сумму');S.goal={name:n,target:t,saved:0};save();renderOrg()};
+const L=S.fin.filter(o=>(o.c+' '+o.n).toLowerCase().includes(q));
+$('#list').innerHTML=L.length?L.slice(0,60).map(o=>'<div class="item"><div class="t">'+(o.t==='in'?'+':'−')+fm(o.s)+' · '+esc(o.c)+'<div class="meta">'+o.d+(o.n?' · '+esc(o.n):'')+'</div></div><button class="btn d" data-x="'+o.id+'">Удалить</button></div>').join(''):'<div class="empty">Операций нет. Добавьте первую выше.</div>';
+$$('[data-x]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.fin=S.fin.filter(x=>x.id!==b.dataset.x);save();renderOrg()}))}
+/* study & sport */
+const LS=[['8:30','9:10'],['9:30','10:10'],['10:30','11:10'],['11:20','12:00'],['12:10','12:50'],['13:00','13:40'],['14:00','14:40']];
+const SCH={1:{l:['Русский язык','Алгебра','География','Физика','Английский'],x:['Тхэквондо 19:00']},2:{l:['Алгебра','Геометрия','История','ОБЖ','ВИЗ','Биология','Химия'],x:['Доп. информатика 15:00','Доп. русский 17:00']},3:{l:['Обществознание','Алгебра','Английский','Химия','География','Литература','Труды'],x:['Доп. физика','Подготовка к ОГЭ','Тхэквондо 19:00']},4:{l:['Геометрия','История','Информатика','Русский язык','Физика','Английский','Литература'],x:['Тхэквондо 18:00']},5:{l:['Русский язык','Литература','Физика','Биология','Алгебра','Геометрия','Физра'],x:['Доп. физика 17:00','Тхэквондо 19:00']},6:{l:[],x:['Доп. английский 10:00','Тренажёрный зал']},0:{l:[],x:['Тренажёрный зал']}};
+const SUBJ=[...new Set(Object.values(SCH).flatMap(d=>d.l))].sort();
+let sd=new Date().getDay(),pom={l:1500,r:0,b:0,iv:0};const FL={};
+const mmss=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function pomUI(){const e=$('#pt');if(e)e.textContent=mmss(pom.l);const b=$('#pgo');if(b)b.textContent=pom.r?'Пауза':'Старт';const m=$('#pm');if(m)m.textContent=pom.b?'Перерыв':'Фокус'}
+function pomTick(){pom.l--;if(pom.l<=0){clearInterval(pom.iv);pom.r=0;pom.b=!pom.b;pom.l=pom.b?300:1500;toast(pom.b?'Перерыв 5 минут':'Снова за работу');try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}}pomUI()}
+function renderStudy(){S.hw=S.hw||[];S.cards=S.cards||[];const D=SCH[sd],t=todayS(),H=[...S.hw].sort((a,b)=>(a.done-b.done)||(a.d||'9').localeCompare(b.d||'9'));
+$('#study').innerHTML=`<button class='btn' id='bk'>‹ Главная</button><h2>Расписание</h2><div class='seg'>${[['Пн',1],['Вт',2],['Ср',3],['Чт',4],['Пт',5],['Сб',6],['Вс',0]].map(([n,v])=>`<button class='btn${sd===v?' on':''}' data-d='${v}'>${n}</button>`).join('')}</div><div class='panel'>${D.l.length?D.l.map((x,i)=>`<div class='item'><div class='t'>${i+1}. ${x}</div><div class='meta'>${LS[i][0]}–${LS[i][1]}</div></div>`).join(''):`<div class='meta'>Уроков нет</div>`}${D.x.length?`<div class='meta' style='margin-top:8px'>Вне школы: ${D.x.join(', ')}</div>`:''}</div>
+<h2>Домашние задания</h2><div class='panel'><div class='row'><select class='in' id='hs'>${SUBJ.map(s=>`<option>${s}</option>`).join('')}</select><input class='in' id='hd' type='date'></div><div class='row' style='margin-top:8px'><input class='in' id='ht' placeholder='Что задали'><button class='btn p' id='ha'>Добавить</button></div>${H.length?H.map(x=>`<div class='item${x.done?' done':''}'><input type='checkbox' data-hc='${x.id}'${x.done?' checked':''}><div class='t'>${esc(x.s)}: ${esc(x.t)}<div class='meta' style='${!x.done&&x.d&&x.d<t?'color:var(--bad)':''}'>${x.d?'до '+x.d+(!x.done&&x.d<t?' · просрочено':''):'без срока'}</div></div><button class='btn d' data-hx='${x.id}'>Удалить</button></div>`).join(''):`<div class='empty'>Заданий нет.</div>`}</div>
+<h2>Pomodoro</h2><div class='panel' style='text-align:center'><div class='meta' id='pm'></div><div id='pt' style='font-size:44px;font-weight:300;color:var(--cy)'></div><div class='row' style='justify-content:center;margin-top:8px'><button class='btn p' id='pgo'>Старт</button><button class='btn' id='prs'>Сброс</button></div><div class='meta' style='margin-top:6px'>25 минут фокуса, затем 5 минут перерыва</div></div>
+<h2>Карточки</h2><div class='panel'><div class='row'><input class='in' id='cf' placeholder='Вопрос'><input class='in' id='cb' placeholder='Ответ'></div><div class='row' style='margin-top:8px'><button class='btn p' id='ca'>Добавить карточку</button></div>${S.cards.length?S.cards.map(c=>`<div class='item'><div class='t' data-cf='${c.id}' style='cursor:pointer'>${FL[c.id]?'<span style=color:var(--tq)>'+esc(c.b)+'</span>':esc(c.f)}<div class='meta'>${FL[c.id]?'ответ':'нажмите, чтобы увидеть ответ'}</div></div><button class='btn d' data-cx='${c.id}'>Удалить</button></div>`).join(''):`<div class='empty'>Карточек нет.</div>`}</div>`;
+$('#bk').onclick=()=>go('home');$$('[data-d]').forEach(b=>b.onclick=()=>{sd=+b.dataset.d;renderStudy()});
+$('#ha').onclick=()=>{const x=$('#ht').value.trim();if(!x)return toast('Напишите, что задали');S.hw.unshift({id:uid(),s:$('#hs').value,t:x,d:$('#hd').value,done:false});save();renderStudy()};
+$$('[data-hc]').forEach(e=>e.onchange=()=>{S.hw.find(x=>x.id===e.dataset.hc).done=e.checked;save();renderStudy()});
+$$('[data-hx]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.hw=S.hw.filter(x=>x.id!==b.dataset.hx);save();renderStudy()}));
+$('#ca').onclick=()=>{const f=$('#cf').value.trim(),k=$('#cb').value.trim();if(!f||!k)return toast('Заполните вопрос и ответ');S.cards.unshift({id:uid(),f,b:k});save();renderStudy()};
+$$('[data-cf]').forEach(e=>e.onclick=()=>{FL[e.dataset.cf]=!FL[e.dataset.cf];renderStudy()});
+$$('[data-cx]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.cards=S.cards.filter(x=>x.id!==b.dataset.cx);save();renderStudy()}));
+$('#pgo').onclick=()=>{if(pom.r){clearInterval(pom.iv);pom.r=0}else{pom.r=1;pom.iv=setInterval(pomTick,1000)}pomUI()};
+$('#prs').onclick=()=>{clearInterval(pom.iv);pom.r=0;pom.b=0;pom.l=1500;pomUI()};pomUI()}
+const EX=['Тхэквондо','Жим лёжа','Присед','Подтягивания','Отжимания','Становая тяга','Пресс'];
+function renderSport(){S.wk=S.wk||[];const t=todayS(),w=new Date();w.setDate(w.getDate()-6);const ws=iso(w),W=S.wk.filter(o=>o.d>=ws),days=new Set(W.map(o=>o.d)).size,md=new Set(S.wk.filter(o=>o.d.slice(0,7)===t.slice(0,7)).map(o=>o.d)).size,pl=SCH[new Date().getDay()].x.filter(x=>/Тхэквондо|Тренажёр/.test(x));
+$('#sport').innerHTML=`<button class='btn' id='bk'>‹ Главная</button><h2>Сегодня по расписанию</h2><div class='panel'>${pl.length?pl.join(', '):'Тренировок нет, сегодня день отдыха.'}</div><h2>Записать упражнение</h2><div class='panel'><input class='in' id='se' list='exl' placeholder='Упражнение' style='width:100%'><datalist id='exl'>${EX.map(e=>`<option value='${e}'>`).join('')}</datalist><div class='row' style='margin-top:8px'><input class='in' id='ss' type='number' inputmode='numeric' placeholder='Подходы'><input class='in' id='sr' type='number' inputmode='numeric' placeholder='Повторы'><input class='in' id='sw' type='number' inputmode='decimal' placeholder='Вес, кг'></div><div class='row' style='margin-top:8px'><button class='btn p' id='sa'>Записать</button></div></div><h2>Статистика</h2><div class='panel meta'>За 7 дней: тренировочных дней ${days}, дней отдыха ${7-days}, подходов ${W.reduce((s,o)=>s+o.s,0)}, объём ${fm(W.reduce((s,o)=>s+o.s*o.r*o.w,0))} кг<br>В этом месяце тренировочных дней: ${md}</div><h2>История</h2><div class='panel'>${S.wk.length?S.wk.slice(0,40).map(o=>`<div class='item'><div class='t'>${esc(o.ex)}<div class='meta'>${o.d} · ${o.s}×${o.r}${o.w?' · '+fm(o.w)+' кг':''}</div></div><button class='btn d' data-wx='${o.id}'>Удалить</button></div>`).join(''):`<div class='empty'>Записей нет.</div>`}</div>`;
+$('#bk').onclick=()=>go('home');
+$('#sa').onclick=()=>{const ex=$('#se').value.trim(),s=parseInt($('#ss').value),r=parseInt($('#sr').value),wt=parseFloat($('#sw').value)||0;if(!ex||!(s>0)||!(r>0))return toast('Укажите упражнение, подходы и повторы');S.wk.unshift({id:uid(),d:todayS(),ex,s,r,w:wt});save();renderSport()};
+$$('[data-wx]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.wk=S.wk.filter(x=>x.id!==b.dataset.wx);save();renderSport()}))}
+/* settings */
+$('#nm').oninput=e=>{S.name=e.target.value.trim();save();tick()};
+$('#sp').onchange=e=>{S.speak=e.target.checked;save()};
+$('#exp').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(S,null,1));toast('Данные скопированы')}catch(e){toast('Не удалось скопировать')}};
+$('#wipe').onclick=()=>twoTap($('#wipe'),()=>{S={tasks:[],notes:[],chat:[],events:[],fin:[],goal:null,budget:0,hw:[],cards:[],wk:[],log:[],name:'',speak:true};prev=null;save();$('#nm').value='';tick();toast('Все данные удалены')});
+/* history, search, boot */
+function renderHist(){const L=(S.log||[]).slice(0,30);$('#hist').innerHTML=L.length?L.map(x=>`<div class='item'><div class='t'>${esc(x.a)}<div class='meta'>${new Date(x.ts).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join(''):`<div class='empty'>Действий пока нет.</div>`}
+const SRC=[['tasks','Задачи',x=>x.title,()=>{orgTab='tasks';go('organizer')}],['notes','Заметки',x=>x.text,()=>{orgTab='notes';go('organizer')}],['events','События',x=>x.title+' '+x.date,()=>{orgTab='events';go('organizer')}],['fin','Финансы',x=>x.c+' '+(x.n||''),()=>{orgTab='fin';go('organizer')}],['hw','Домашка',x=>x.s+' '+x.t,()=>go('study')],['cards','Карточки',x=>x.f+' '+x.b,()=>go('study')],['wk','Спорт',x=>x.ex,()=>go('sport')]];
+function openS(){$('#ov').style.display='block';$('#gq').value='';gsearch();$('#gq').focus()}
+function closeS(){$('#ov').style.display='none'}
+function gsearch(){const q=$('#gq').value.trim(),ql=q.toLowerCase();let h='';
+if(q)h+=`<div class='panel' data-ask='1' style='cursor:pointer'>Спросить JARVIS: «${esc(q)}»</div>`;
+SRC.forEach(([k,n,f],i)=>{const L=ql?(S[k]||[]).filter(x=>f(x).toLowerCase().includes(ql)).slice(0,5):[];if(L.length)h+=`<h2>${n}</h2><div class='panel'>${L.map(x=>`<div class='item' data-s='${i}' style='cursor:pointer'><div class='t'>${esc(f(x).slice(0,80))}</div></div>`).join('')}</div>`});
+$('#gr').innerHTML=h||`<div class='empty'>Введите запрос</div>`;
+$$('[data-s]').forEach(e=>e.onclick=()=>{closeS();SRC[+e.dataset.s][3]()});
+const a=$('[data-ask]');if(a)a.onclick=()=>{closeS();send(q)}}
+$('#sb').onclick=openS;$('#gx').onclick=closeS;$('#gq').oninput=gsearch;
+$('#gq').onkeydown=e=>{if(e.key==='Enter'){const q=$('#gq').value.trim();if(q){closeS();send(q)}}else if(e.key==='Escape')closeS()};
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openS()}});
+kv('get','state').then(v=>{if(v)Object.assign(S,v);diff();if(!v)save();tick();renderHome()}).catch(()=>{diff()});
+renderHome();
+</script>
+</body>
+</html>
