@@ -110,6 +110,8 @@ label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
   <div class="panel">
     <div class="meta" style="margin-bottom:8px">Всё хранится только на этом устройстве, в браузере.</div>
     <div class="row"><button class="btn" id="exp">Скопировать данные (JSON)</button><button class="btn d" id="wipe">Удалить всё</button></div>
+    <textarea class="in" id="imp" rows="3" placeholder="Здесь появятся данные после «Скопировать». Чтобы перенести данные, вставьте сюда JSON и нажмите «Загрузить»" style="width:100%;border-radius:16px;margin-top:8px"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="impb">Загрузить данные</button></div>
   </div>
   <h2>История действий</h2><div class="panel" id="hist"></div><h2>AI</h2>
   <div class="panel">AI-сервер не подключён (этап 5). Ключи будут храниться только на сервере. Сейчас JARVIS понимает команды на основе правил: задачи, заметки, «мой день».</div>
@@ -228,7 +230,7 @@ try{speechSynthesis.cancel()}catch(e){}
 rec=new SR();rec.lang='ru-RU';rec.interimResults=false;let got='';
 rec.onstart=()=>{setMode('listen');$('#mic').classList.add('rec')};
 rec.onresult=e=>{got=e.results[0][0].transcript};
-rec.onerror=e=>toast(e.error==='not-allowed'?'Нет доступа к микрофону':'Ошибка распознавания');
+rec.onerror=e=>{const m={'not-allowed':'Нет доступа к микрофону или распознаванию речи. Проверьте разрешения сайта','service-not-allowed':'Распознавание речи запрещено. Включите Диктовку в настройках','no-speech':'Не услышал речь. Нажмите и сразу говорите','network':'Нет связи с сервисом распознавания','audio-capture':'Микрофон не найден'};toast(m[e.error]||'Ошибка распознавания: '+e.error)};
 rec.onend=()=>{rec=null;$('#mic').classList.remove('rec');setMode('idle');if(got)send(got)};
 try{rec.start()}catch(e){rec=null;toast('Не удалось включить микрофон')}};
 
@@ -332,7 +334,8 @@ $$('[data-wx]').forEach(b=>b.onclick=()=>twoTap(b,()=>{S.wk=S.wk.filter(x=>x.id!
 /* settings */
 $('#nm').oninput=e=>{S.name=e.target.value.trim();save();tick()};
 $('#sp').onchange=e=>{S.speak=e.target.checked;save()};
-$('#exp').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(S,null,1));toast('Данные скопированы')}catch(e){toast('Не удалось скопировать')}};
+$('#exp').onclick=async()=>{const j=JSON.stringify(S);$('#imp').value=j;try{await navigator.clipboard.writeText(j);toast('Данные скопированы')}catch(e){$('#imp').select();toast('Выделите текст в поле ниже и скопируйте вручную')}};
+$('#impb').onclick=()=>twoTap($('#impb'),()=>{try{const d=JSON.parse($('#imp').value);if(!d||typeof d!=='object'||!Array.isArray(d.tasks))throw 0;Object.assign(S,d);prev=null;save();$('#imp').value='';$('#nm').value=S.name||'';tick();renderHome();renderHist();toast('Данные загружены')}catch(e){toast('Это не похоже на данные JARVIS')}});
 $('#wipe').onclick=()=>twoTap($('#wipe'),()=>{S={tasks:[],notes:[],chat:[],events:[],fin:[],goal:null,budget:0,hw:[],cards:[],wk:[],log:[],name:'',speak:true};prev=null;save();$('#nm').value='';tick();toast('Все данные удалены')});
 /* history, search, boot */
 function renderHist(){const L=(S.log||[]).slice(0,30);$('#hist').innerHTML=L.length?L.map(x=>`<div class='item'><div class='t'>${esc(x.a)}<div class='meta'>${new Date(x.ts).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join(''):`<div class='empty'>Действий пока нет.</div>`}
